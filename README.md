@@ -59,20 +59,23 @@ The app runs only on your home LAN until you pick one of these. Pick **A** unles
 
 ### A. Tailscale (recommended)
 
-Tailscale makes a private network between your Pi and your family's phones, over the internet, with no port forwarding and no public exposure.
+Tailscale makes a private network (a "tailnet") between your Pi and your family's phones, over the internet, with no port forwarding and no public exposure.
 
-- Free for personal use (3 users, 100 devices).
-- Nobody on the internet can even see the app. Only devices you admit.
-- Setup is one command on the Pi and one app install per phone.
+- Free personal plan: up to 6 users, unlimited devices.
+- Nobody on the internet can even see the app. Only people you invite.
+- Family members do **not** need your account. You invite them; they sign in with their own Google/Apple/Microsoft/GitHub login and become members of your tailnet.
 - Downside: each family member installs the Tailscale app and signs in once.
 
-Steps:
+Steps (the Pi is already on your tailnet from another project, so skip step 1 if `tailscale status` on the Pi shows it connected):
 
-1. On the Pi: `curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up`. Open the link it prints and sign in (Google/GitHub/Microsoft account).
-2. Ask each family member to install the Tailscale app on their phone from the App Store / Play Store, and sign in. Either they sign in with **your** account (simplest), or with their own and you go to https://login.tailscale.com/admin/machines, click the Pi, and **Share** it to them.
-3. On the phone, open `http://mihirpi:5000` (or `http://<tailscale-ip-of-pi>:5000`, from `tailscale ip -4` on the Pi). Tap "Add to Home Screen" in the browser so it behaves like an app.
+1. On the Pi: `curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up`. Open the link it prints and sign in.
+2. Invite family: go to https://login.tailscale.com/admin/users, click **Invite external users**, and either enter their emails or copy the invite link and send it on WhatsApp. Invites expire in 30 days. If you have "user approval" turned on in the admin console, approve them under Users after they accept.
+3. Each family member: install **Tailscale** from the App Store / Play Store, open the invite link on the phone, sign in with any account they already have (Google, Apple, Microsoft, GitHub). Turn the toggle on.
+4. On the phone, open `http://mihirpi:5000` (or `http://<tailscale-ip-of-pi>:5000`, from `tailscale ip -4` on the Pi). Tap "Add to Home Screen" in the browser so it behaves like an app.
 
 That's it. The app itself doesn't change.
+
+Invited users can see every device on your tailnet, including whatever runs whatsinmyfridge. That's fine for family. If you ever want to limit them to the Pi only, that's an ACL edit at https://login.tailscale.com/admin/acls, not an app change.
 
 Battery on iPhone: Tailscale idles at a few percent per day when it is only used to reach a home device like this. The two things that actually drain phones are (1) routing all traffic through an **exit node**, so never turn that on, and (2) the occasional buggy release. If someone sees Tailscale near the top of Settings > Battery, update the app first. Anyone who wants zero background cost can open Tailscale, set VPN On Demand to "Do Nothing" for Cellular and Wi-Fi, and just flip the toggle on when they want to log.
 
