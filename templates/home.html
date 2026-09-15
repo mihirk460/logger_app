@@ -2,21 +2,21 @@
 {% block content %}
 <form method="post" action="{{ url_for('log') }}">
   <label class="datebar">Logging for <input type="date" name="date" id="logdate" value="{{ date }}" {% if fixed %}data-fixed="1"{% endif %} required></label>
-  {% if not items %}<p class="empty">No items yet. Create one, then tap it to log.</p>{% endif %}
+  {% if not categories %}<p class="empty">No categories yet. Create one, then tap it to log.</p>{% endif %}
   <ul class="items">
-  {% for it in items %}
+  {% for c in categories %}
     <li>
-      <button type="submit" name="item_id" value="{{ it.id }}" class="item" style="--c: {{ it.color }}">
-        <span class="icon">{{ it.icon }}</span>
-        <span class="text"><span class="name">{{ it.name }}</span>{% if it.note %}<span class="note">{{ it.note }}</span>{% endif %}</span>
-        <span class="count">{{ it.count }}</span>
+      <button type="submit" name="category_id" value="{{ c.id }}" class="item" style="--c: {{ c.color }}">
+        <span class="icon">{{ c.icon }}</span>
+        <span class="text"><span class="name">{{ c.name }}</span>{% if c.note %}<span class="note">{{ c.note }}</span>{% endif %}</span>
+        <span class="count">{{ c.count }}</span>
       </button>
-      <a class="edit" href="{{ url_for('edit_item', item_id=it.id) }}" aria-label="Edit item">✎</a>
+      <a class="edit" href="{{ url_for('edit_category', category_id=c.id) }}" aria-label="Edit category">✎</a>
     </li>
   {% endfor %}
   </ul>
 </form>
-<a class="btn primary" href="{{ url_for('new_item') }}">+ New item</a>
+<a class="btn primary" href="{{ url_for('new_category') }}">+ New category</a>
 {% endblock %}
 {% block scripts %}
 <script>

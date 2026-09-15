@@ -2,28 +2,32 @@
 {% block heading %}Chart{% endblock %}
 {% block content %}
 <form method="get" class="filters">
-  <select name="item" onchange="this.form.submit()">
-    <option value="all" {{ 'selected' if item_id == 'all' }}>All items</option>
-    {% for it in items %}<option value="{{ it.id }}" {{ 'selected' if item_id == it.id|string }}>{{ it.icon }} {{ it.name }}</option>{% endfor %}
+  <select name="category" onchange="this.form.submit()">
+    <option value="all" {{ 'selected' if cat_id == 'all' }}>All categories</option>
+    {% for c in categories %}<option value="{{ c.id }}" {{ 'selected' if cat_id == c.id|string }}>{{ c.icon }} {{ c.name }}</option>{% endfor %}
   </select>
   <select name="range" onchange="this.form.submit()">
     <option value="30" {{ 'selected' if rng == '30' }}>Last 30 days</option>
     {% for mo in months %}<option value="{{ mo }}" {{ 'selected' if rng == mo }}>{{ mo }}</option>{% endfor %}
   </select>
 </form>
-<p class="center">Total: <strong>{{ total }}</strong> logs</p>
 <div class="chartbox"><canvas id="chart"></canvas></div>
+<ul class="totals">
+  {% for s in series %}<li><span class="dot" style="--c: {{ s.backgroundColor }}"></span>{{ s.label }}<strong>{{ s.total }}</strong></li>{% endfor %}
+  <li class="sum">Total<strong>{{ total }}</strong></li>
+</ul>
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='chart.umd.js') }}"></script>
 <script>
 new Chart(document.getElementById('chart'), {
   type: 'bar',
-  data: { labels: {{ labels|tojson }}, datasets: [{ data: {{ data|tojson }}, backgroundColor: {{ color|tojson }} }] },
+  data: { labels: {{ labels|tojson }}, datasets: {{ series|tojson }} },
   options: {
     responsive: true, maintainAspectRatio: false,
     plugins: { legend: { display: false } },
-    scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { maxRotation: 0, autoSkip: true } } }
+    scales: { y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } },
+              x: { stacked: true, ticks: { maxRotation: 0, autoSkip: true } } }
   }
 });
 </script>

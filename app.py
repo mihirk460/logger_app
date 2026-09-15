@@ -98,9 +98,9 @@ def parse_date(s, default=None):
         return default or date.today()
 
 
-def get_item(item_id):
+def get_category(category_id):
     row = query("SELECT * FROM items WHERE id=? AND user_id=?",
-                (item_id, g.user["id"]), one=True)
+                (category_id, g.user["id"]), one=True)
     if row is None:
         abort(404)
     return row
@@ -116,7 +116,7 @@ def get_log(log_id):
     return row
 
 
-def user_items():
+def user_categories():
     return query("""SELECT items.*, COUNT(logs.id) AS count
                     FROM items LEFT JOIN logs ON logs.item_id = items.id
                     WHERE items.user_id=? GROUP BY items.id ORDER BY items.name""",
@@ -198,19 +198,19 @@ def logout():
 @login_required
 def home():
     d = request.args.get("date")
-    return render_template("home.html", items=user_items(),
+    return render_template("home.html", categories=user_categories(),
                            date=parse_date(d).isoformat(), fixed=bool(d))
 
 
 @app.route("/log", methods=["POST"])
 @login_required
 def log():
-    item = get_item(request.form.get("item_id", type=int))
+    cat = get_category(request.form.get("category_id", type=int))
     d = parse_date(request.form.get("date"))
     log_id = execute("INSERT INTO logs (item_id, date) VALUES (?, ?)",
-                     (item["id"], d.isoformat()))
+                     (cat["id"], d.isoformat()))
     flash(Markup('Logged {} {} for {}. <a href="{}">Change / undo</a>').format(
-        item["icon"], escape(item["name"]), d.strftime("%a %b %-d"),
+        cat["icon"], escape(cat["name"]), d.strftime("%a %b %-d"),
         url_for("edit_log", log_id=log_id)))
     return redirect(url_for("home", date=request.form.get("date")))
 
@@ -235,9 +235,9 @@ def delete_log(log_id):
     return redirect(url_for("day", d=lg["date"]))
 
 
-# --- items -----------------------------------------------------------------
+# --- categories (SQL table is still called `items`) ----------------------
 
-def item_form(item=None):
+def category_form(cat=None):
     if request.method == "POST":
         name = request.form.get("name", "").strip()
         note = request.form.get("note", "").strip()
@@ -248,41 +248,50 @@ def item_form(item=None):
         elif color not in COLORS or icon not in ICONS:
             flash("Pick a color and an icon.")
         else:
-            if item is None:
+            if cat is None:
                 execute("INSERT INTO items (user_id, name, note, color, icon) VALUES (?,?,?,?,?)",
                         (g.user["id"], name, note, color, icon))
             else:
                 execute("UPDATE items SET name=?, note=?, color=?, icon=? WHERE id=?",
-                        (name, note, color, icon, item["id"]))
+                        (name, note, color, icon, cat["id"]))
             return redirect(url_for("home"))
-    return render_template("item_form.html", item=item, colors=COLORS, icons=ICONS)
+    return render_template("category_form.html", cat=cat, colors=COLORS, icons=ICONS)
 
 
-@app.route("/items/new", methods=["GET", "POST"])
+@app.route("/categories/new", methods=["GET", "POST"])
 @login_required
-def new_item():
-    return item_form()
+def new_category():
+    return category_form()
 
 
-@app.route("/items/<int:item_id>/edit", methods=["GET", "POST"])
+@app.route("/categories/<int:category_id>/edit", methods=["GET", "POST"])
 @login_required
-def edit_item(item_id):
-    return item_form(get_item(item_id))
+def edit_category(category_id):
+    return category_form(get_category(category_id))
 
 
-@app.route("/items/<int:item_id>/delete", methods=["POST"])
+@app.route("/categories/<int:category_id>/delete", methods=["POST"])
 @login_required
-def delete_item(item_id):
-    get_item(item_id)
-    execute("DELETE FROM items WHERE id=?", (item_id,))
+def delete_category(category_id):
+    get_category(category_id)
+    execute("DELETE FROM items WHERE id=?", (category_id,))
     return redirect(url_for("home"))
 
 
 # --- calendar --------------------------------------------------------------
 
+def category_filter(sql, args):
+    """Append a category filter when ?category=<id> is a real category of this user."""
+    cat_id = request.args.get("category", "all")
+    if cat_id != "all" and any(str(c["id"]) == cat_id for c in g.categories):
+        return sql + " AND items.id=?", args + [cat_id], cat_id
+    return sql, args, "all"
+
+
 @app.route("/calendar")
 @login_required
 def calendar_view():
+    g.categories = user_categories()
     today = date.today()
     y = request.args.get("y", today.year, type=int)
     m = request.args.get("m", today.month, type=int)
@@ -290,17 +299,19 @@ def calendar_view():
         y, m = today.year, today.month
     weeks = calendar.Calendar(firstweekday=6).monthdatescalendar(y, m)
     start, end = weeks[0][0].isoformat(), weeks[-1][-1].isoformat()
-    rows = query("""SELECT logs.date, items.icon, items.color
-                    FROM logs JOIN items ON items.id = logs.item_id
-                    WHERE items.user_id=? AND logs.date BETWEEN ? AND ?
-                    ORDER BY logs.date, logs.id""", (g.user["id"], start, end))
+    sql, args, cat_id = category_filter(
+        """SELECT logs.date, items.icon, items.color
+           FROM logs JOIN items ON items.id = logs.item_id
+           WHERE items.user_id=? AND logs.date BETWEEN ? AND ?""",
+        [g.user["id"], start, end])
     by_day = {}
-    for r in rows:
+    for r in query(sql + " ORDER BY logs.date, logs.id", args):
         by_day.setdefault(r["date"], []).append(r)
     prev_m = date(y, m, 1) - timedelta(days=1)
     next_m = date(y, m, calendar.monthrange(y, m)[1]) + timedelta(days=1)
     return render_template("calendar.html", weeks=weeks, by_day=by_day,
                            month=date(y, m, 1), today=today,
+                           categories=g.categories, cat_id=cat_id,
                            prev=(prev_m.year, prev_m.month),
                            next=(next_m.year, next_m.month))
 
@@ -321,9 +332,8 @@ def day(d):
 @app.route("/chart")
 @login_required
 def chart():
-    items = user_items()
+    g.categories = user_categories()
     today = date.today()
-    item_id = request.args.get("item", "all")
     rng = request.args.get("range", "30")
 
     first = query("""SELECT MIN(logs.date) AS d FROM logs JOIN items ON items.id = logs.item_id
@@ -345,26 +355,33 @@ def chart():
         start, end = today - timedelta(days=29), today
         label_fmt = "%b %-d"
 
-    sql = """SELECT logs.date AS d, COUNT(*) AS n FROM logs JOIN items ON items.id = logs.item_id
-             WHERE items.user_id=? AND logs.date BETWEEN ? AND ?"""
-    args = [g.user["id"], start.isoformat(), end.isoformat()]
-    if item_id != "all":
-        sql += " AND items.id=?"
-        args.append(item_id)
-    counts = {r["d"]: r["n"] for r in query(sql + " GROUP BY logs.date", args)}
+    sql, args, cat_id = category_filter(
+        """SELECT logs.date AS d, items.id AS cid, COUNT(*) AS n
+           FROM logs JOIN items ON items.id = logs.item_id
+           WHERE items.user_id=? AND logs.date BETWEEN ? AND ?""",
+        [g.user["id"], start.isoformat(), end.isoformat()])
+    counts = {}  # (category id, date) -> count
+    for r in query(sql + " GROUP BY logs.date, items.id", args):
+        counts[(r["cid"], r["d"])] = r["n"]
 
-    labels, data = [], []
+    days = []
     d = start
     while d <= end:
-        labels.append(d.strftime(label_fmt))
-        data.append(counts.get(d.isoformat(), 0))
+        days.append(d)
         d += timedelta(days=1)
+    labels = [d.strftime(label_fmt) for d in days]
 
-    selected = next((i for i in items if str(i["id"]) == item_id), None)
-    return render_template("chart.html", items=items, months=months, rng=rng,
-                           item_id=item_id, labels=labels, data=data,
-                           total=sum(data),
-                           color=selected["color"] if selected else "#1e88e5")
+    shown = [c for c in g.categories if cat_id == "all" or str(c["id"]) == cat_id]
+    series = []
+    for c in shown:
+        data = [counts.get((c["id"], d.isoformat()), 0) for d in days]
+        series.append({"label": f'{c["icon"]} {c["name"]}', "data": data,
+                       "backgroundColor": c["color"], "total": sum(data)})
+    series.sort(key=lambda x: -x["total"])
+
+    return render_template("chart.html", categories=g.categories, months=months,
+                           rng=rng, cat_id=cat_id, labels=labels, series=series,
+                           total=sum(x["total"] for x in series))
 
 
 if __name__ == "__main__":

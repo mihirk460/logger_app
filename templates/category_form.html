@@ -1,19 +1,19 @@
 {% extends "base.html" %}
-{% block heading %}{{ 'Edit item' if item else 'New item' }}{% endblock %}
+{% block heading %}{{ 'Edit category' if cat else 'New category' }}{% endblock %}
 {% block content %}
 <form method="post" class="card">
-  <label>Name <input name="name" maxlength="40" value="{{ request.form.name or (item.name if item else '') }}" required autofocus></label>
-  <label>Note <input name="note" maxlength="200" value="{{ request.form.note or (item.note if item else '') }}"></label>
+  <label>Name <input name="name" maxlength="40" value="{{ request.form.name or (cat.name if cat else '') }}" required autofocus></label>
+  <label>Note <input name="note" maxlength="200" value="{{ request.form.note or (cat.note if cat else '') }}"></label>
   <div class="label">Color</div>
   <div class="swatches">
-    {% set cur_color = request.form.color or (item.color if item else colors[0]) %}
+    {% set cur_color = request.form.color or (cat.color if cat else colors[0]) %}
     {% for c in colors %}
     <label class="swatch" style="--c: {{ c }}"><input type="radio" name="color" value="{{ c }}" {{ 'checked' if c == cur_color }}><span></span></label>
     {% endfor %}
   </div>
   <div class="label">Icon</div>
   <div class="iconpick">
-    {% set cur_icon = request.form.icon or (item.icon if item else icons[0]) %}
+    {% set cur_icon = request.form.icon or (cat.icon if cat else icons[0]) %}
     {% for i in icons %}
     <label class="ico"><input type="radio" name="icon" value="{{ i }}" {{ 'checked' if i == cur_icon }}><span>{{ i }}</span></label>
     {% endfor %}
@@ -21,9 +21,9 @@
   <button class="btn primary">Save</button>
   <a class="btn" href="{{ url_for('home') }}">Cancel</a>
 </form>
-{% if item %}
-<form method="post" action="{{ url_for('delete_item', item_id=item.id) }}" onsubmit="return confirm('Delete this item and all its logs?')">
-  <button class="btn danger">Delete item</button>
+{% if cat %}
+<form method="post" action="{{ url_for('delete_category', category_id=cat.id) }}" onsubmit="return confirm('Delete this category and all its logs?')">
+  <button class="btn danger">Delete category</button>
 </form>
 {% endif %}
 {% endblock %}

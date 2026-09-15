@@ -1,6 +1,6 @@
 # Logger
 
-A tiny Flask web app for logging daily activities. Create an item (name, note, color, icon), tap it to log it for today (or any date), and see your history in a calendar and a bar chart. Login is username + 4-digit PIN. Each user sees only their own items and logs.
+A tiny Flask web app for logging daily activities. Create a category (name, note, color, icon), tap it to log it for today (or any date), and see your history in a calendar and a bar chart. Login is username + 4-digit PIN. Each user sees only their own categories and logs.
 
 Everything lives in one process on the Raspberry Pi. The database is a single SQLite file at `data/logger.db`.
 
@@ -103,9 +103,9 @@ No. GitHub is not a database. Every tap would have to be a commit, every phone w
 ## 3. Using the app
 
 - **First visit:** tap "Create an account", pick a username and a 4-digit PIN. There's always a "Create account" link on the login page, and a "Log out" link at the top when logged in.
-- **Home:** tap "+ New item" to create an activity with a name, optional note, color and icon. Tap an item to log it. The "Logging for" date defaults to today (your phone's timezone); change it before tapping to log a different day. After logging, a "Change / undo" link lets you fix the date or delete it. The pencil next to an item edits or deletes it.
-- **Calendar:** month grid with the icons of everything logged under each day. Tap a day to see its logs, edit their date/note, delete them, or log more for that day.
-- **Chart:** pick an item (or all items) and either "Last 30 days" or a specific month. Bars show logs per day.
+- **Home:** tap "+ New category" to create an activity with a name, optional note, color and icon. Tap a category to log it. The "Logging for" date defaults to today (your phone's timezone); change it before tapping to log a different day. After logging, a "Change / undo" link lets you fix the date or delete it. The pencil next to a category edits or deletes it.
+- **Calendar:** month grid with the icons of everything logged under each day. The dropdown at the top filters to one category. Tap a day to see its logs, edit their date/note, delete them, or log more for that day.
+- **Chart:** pick a category (or all) and either "Last 30 days" or a specific month. Bars show logs per day, colored by category, with a per-category total underneath.
 
 ## Notes
 

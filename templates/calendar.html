@@ -1,10 +1,17 @@
 {% extends "base.html" %}
 {% block heading %}Calendar{% endblock %}
 {% block content %}
+<form method="get" class="filters">
+  <input type="hidden" name="y" value="{{ month.year }}"><input type="hidden" name="m" value="{{ month.month }}">
+  <select name="category" onchange="this.form.submit()">
+    <option value="all" {{ 'selected' if cat_id == 'all' }}>All categories</option>
+    {% for c in categories %}<option value="{{ c.id }}" {{ 'selected' if cat_id == c.id|string }}>{{ c.icon }} {{ c.name }}</option>{% endfor %}
+  </select>
+</form>
 <div class="monthnav">
-  <a href="{{ url_for('calendar_view', y=prev[0], m=prev[1]) }}">‹</a>
+  <a href="{{ url_for('calendar_view', y=prev[0], m=prev[1], category=cat_id) }}">‹</a>
   <strong>{{ month.strftime('%B %Y') }}</strong>
-  <a href="{{ url_for('calendar_view', y=next[0], m=next[1]) }}">›</a>
+  <a href="{{ url_for('calendar_view', y=next[0], m=next[1], category=cat_id) }}">›</a>
 </div>
 <div class="cal">
   {% for wd in ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] %}<div class="wd">{{ wd }}</div>{% endfor %}
