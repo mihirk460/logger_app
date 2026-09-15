@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block heading %}Calendar{% endblock %}
+{% block content %}
+<div class="monthnav">
+  <a href="{{ url_for('calendar_view', y=prev[0], m=prev[1]) }}">‹</a>
+  <strong>{{ month.strftime('%B %Y') }}</strong>
+  <a href="{{ url_for('calendar_view', y=next[0], m=next[1]) }}">›</a>
+</div>
+<div class="cal">
+  {% for wd in ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] %}<div class="wd">{{ wd }}</div>{% endfor %}
+  {% for week in weeks %}{% for d in week %}
+    {% set logs = by_day.get(d.isoformat(), []) %}
+    <a class="day {{ 'other' if d.month != month.month }} {{ 'today' if d == today }}" href="{{ url_for('day', d=d.isoformat()) }}">
+      <span class="num">{{ d.day }}</span>
+      <span class="marks">
+        {% for l in logs[:4] %}<span class="mark" style="--c: {{ l.color }}">{{ l.icon }}</span>{% endfor %}
+        {% if logs|length > 4 %}<span class="more">+{{ logs|length - 4 }}</span>{% endif %}
+      </span>
+    </a>
+  {% endfor %}{% endfor %}
+</div>
+{% endblock %}

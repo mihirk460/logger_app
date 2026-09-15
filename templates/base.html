@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Logger{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="top">
+  <span class="brand">{% block heading %}Logger{% endblock %}</span>
+  {% if g.user %}<span class="who">{{ g.user.username }} · <a href="{{ url_for('logout') }}">Log out</a></span>{% endif %}
+</header>
+<main>
+  {% for msg in get_flashed_messages() %}<div class="flash">{{ msg }}</div>{% endfor %}
+  {% block content %}{% endblock %}
+</main>
+{% if g.user %}
+<nav class="bottom">
+  <a href="{{ url_for('home') }}" class="{{ 'active' if request.endpoint in ('home','new_item','edit_item') }}">🏠<span>Home</span></a>
+  <a href="{{ url_for('calendar_view') }}" class="{{ 'active' if request.endpoint in ('calendar_view','day','edit_log') }}">📅<span>Calendar</span></a>
+  <a href="{{ url_for('chart') }}" class="{{ 'active' if request.endpoint == 'chart' }}">📊<span>Chart</span></a>
+</nav>
+{% endif %}
+{% block scripts %}{% endblock %}
+</body>
+</html>

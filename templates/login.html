@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block heading %}Log in{% endblock %}
+{% block content %}
+<form method="post" class="card">
+  <label>Username <input name="username" autocomplete="username" autocapitalize="none" required autofocus></label>
+  <label>PIN <input name="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="current-password" required></label>
+  <button class="btn primary">Log in</button>
+</form>
+<p class="center">New here? <a href="{{ url_for('register') }}">Create an account</a></p>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block heading %}Edit log{% endblock %}
+{% block content %}
+<form method="post" class="card">
+  <p class="big"><span class="dot" style="--c: {{ log.color }}"></span>{{ log.icon }} {{ log.name }}</p>
+  <label>Date <input type="date" name="date" value="{{ log.date }}" required></label>
+  <label>Note <input name="note" maxlength="200" value="{{ log.note }}"></label>
+  <button class="btn primary">Save</button>
+  <a class="btn" href="{{ url_for('day', d=log.date) }}">Cancel</a>
+</form>
+<form method="post" action="{{ url_for('delete_log', log_id=log.id) }}" onsubmit="return confirm('Delete this log?')">
+  <button class="btn danger">Delete log</button>
+</form>
+{% endblock %}

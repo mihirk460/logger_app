@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block heading %}Create account{% endblock %}
+{% block content %}
+<form method="post" class="card">
+  <label>Username <input name="username" maxlength="30" autocomplete="username" autocapitalize="none" required autofocus></label>
+  <label>4-digit PIN <input name="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required></label>
+  <label>Repeat PIN <input name="pin2" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required></label>
+  <button class="btn primary">Create account</button>
+</form>
+<p class="center">Already have one? <a href="{{ url_for('login') }}">Log in</a></p>
+{% endblock %}

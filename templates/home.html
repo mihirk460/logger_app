@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<form method="post" action="{{ url_for('log') }}">
+  <label class="datebar">Logging for <input type="date" name="date" id="logdate" value="{{ date }}" {% if fixed %}data-fixed="1"{% endif %} required></label>
+  {% if not items %}<p class="empty">No items yet. Create one, then tap it to log.</p>{% endif %}
+  <ul class="items">
+  {% for it in items %}
+    <li>
+      <button type="submit" name="item_id" value="{{ it.id }}" class="item" style="--c: {{ it.color }}">
+        <span class="icon">{{ it.icon }}</span>
+        <span class="text"><span class="name">{{ it.name }}</span>{% if it.note %}<span class="note">{{ it.note }}</span>{% endif %}</span>
+        <span class="count">{{ it.count }}</span>
+      </button>
+      <a class="edit" href="{{ url_for('edit_item', item_id=it.id) }}" aria-label="Edit item">✎</a>
+    </li>
+  {% endfor %}
+  </ul>
+</form>
+<a class="btn primary" href="{{ url_for('new_item') }}">+ New item</a>
+{% endblock %}
+{% block scripts %}
+<script>
+// Default the date to the phone's local "today"; the server may sit in another timezone.
+(function () {
+  var el = document.getElementById('logdate');
+  if (!el || el.dataset.fixed) return;
+  var d = new Date();
+  el.value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+})();
+</script>
+{% endblock %}

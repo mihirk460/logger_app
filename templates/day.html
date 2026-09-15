@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block heading %}{{ d.strftime('%a, %b %-d %Y') }}{% endblock %}
+{% block content %}
+{% if not logs %}<p class="empty">Nothing logged this day.</p>{% endif %}
+<ul class="items">
+{% for l in logs %}
+  <li>
+    <a class="item" style="--c: {{ l.color }}" href="{{ url_for('edit_log', log_id=l.id) }}">
+      <span class="icon">{{ l.icon }}</span>
+      <span class="text"><span class="name">{{ l.name }}</span>{% if l.note %}<span class="note">{{ l.note }}</span>{% endif %}</span>
+      <span class="count">✎</span>
+    </a>
+  </li>
+{% endfor %}
+</ul>
+<a class="btn primary" href="{{ url_for('home', date=d.isoformat()) }}">+ Log something for this day</a>
+<a class="btn" href="{{ url_for('calendar_view', y=d.year, m=d.month) }}">Back to calendar</a>
+{% endblock %}
