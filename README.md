@@ -74,6 +74,8 @@ Steps:
 
 That's it. The app itself doesn't change.
 
+Battery on iPhone: Tailscale idles at a few percent per day when it is only used to reach a home device like this. The two things that actually drain phones are (1) routing all traffic through an **exit node**, so never turn that on, and (2) the occasional buggy release. If someone sees Tailscale near the top of Settings > Battery, update the app first. Anyone who wants zero background cost can open Tailscale, set VPN On Demand to "Do Nothing" for Cellular and Wi-Fi, and just flip the toggle on when they want to log.
+
 ### B. Cloudflare Tunnel (public URL, no app on phones)
 
 Gives you a normal `https://logger.yourdomain.com` link that works from any browser. Free, but you need a domain in Cloudflare (roughly $10/year).
